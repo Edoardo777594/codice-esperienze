@@ -1,0 +1,107 @@
+import random as rd
+import time
+
+
+def conversione(k):
+    parziale = 0
+    r = k.copy()
+    r.reverse()
+    posizione = 0
+    for i in r:
+        if i == 'a':
+            valore = 10
+        elif i == 'b':
+            valore = 11
+        elif i == 'c':
+            valore = 12
+        elif i == 'd':
+            valore = 13
+        elif i == 'e':
+            valore = 14
+        elif i == 'f':
+            valore = 15
+        else:
+            valore = i
+
+        parziale += 16 * valore^posizione
+        posizione += 1
+
+    return parziale
+a = 0.10
+b = 1
+c = 1
+d = 1
+T = time.time()
+tempo_gmt = time.gmtime(T)
+anno = tempo_gmt.tm_year
+mese = tempo_gmt.tm_mon
+giorno = tempo_gmt.tm_mday
+ora = tempo_gmt.tm_hour + 1
+minuto = tempo_gmt.tm_min
+secondo = tempo_gmt.tm_sec
+
+Nome_file = f'Presa dati giorno {anno}-{mese}-{giorno}, ora {ora}-{minuto}-{secondo}.csv'
+file = open(Nome_file,'a')
+header = f'Count,Time,Byte,H_raw,T_raw,H,T'
+file.write(header)
+file.close()
+
+wait = []
+buff = []
+count = 0
+
+precedente = simulatore()
+periodo = 0
+while True:
+    input = simulatore()
+    if input[0:4]==['a','a','a','a'] and len(input)>12 and precedente[-1]!='a' and input[5]!='a':
+        wait = input.copy()
+        count += 1
+        h_raw = wait[4:8]
+        t_raw = wait[8:12]
+        h_raw_val = conversione(h_raw)
+        t_raw_val = conversione(t_raw)
+        t = a + t_raw_val
+        h = b + c * h_raw_val + d * (h_raw_val ** 2)
+        riga = f'\n{count},{periodo},{wait},{h_raw},{t_raw},{h},{t}'
+        file = open(Nome_file, 'a')
+        file.write(riga)
+        file.close()
+        buff = wait[12:len(wait)]
+        time.sleep(0.500)
+        while periodo <= 60:
+            timetto = time.time()
+            orario = time.gmtime(timetto)
+            periodo = timetto - T
+            bit = simulatore()
+
+            wait = buff + bit
+
+            if len(wait)>=12:
+                count +=1
+                h_raw = wait[4:8]
+                t_raw = wait[8:12]
+                h_raw_val = conversione(h_raw)
+                t_raw_val = conversione(t_raw)
+                t = a + t_raw_val
+                h = b + c * h_raw_val + d * (h_raw_val** 2)
+                print('ora :',orario.tm_hour+1,'-',orario.tm_min,'-',orario.tm_sec,'\ntemperatura: ',t,'\numidita : ',h)
+                riga = f'\n{count},{periodo},{orario.tm_hour+1}-{orario.tm_min}-{orario.tm_sec},{bit},{h_raw},{t_raw},{h},{t}'
+                file = open(Nome_file, 'a')
+                file.write(riga)
+                file.close()
+                buff = wait[12:len(wait)]
+            else:
+                buff = wait.copy()
+                count += 1
+                riga = f'\n{count},{periodo},{bit},{0},{0},{0},{0}'
+                file = open(Nome_file, 'a')
+                file.write(riga)
+                file.close()
+
+            time.sleep(0.500)
+
+    if input[0:4]==['a','a','a','a'] and len(input)>12 and precedente[-1]!='a' and input[5]!='a':
+        file.close()
+        break
+    precedente = input.copy()
